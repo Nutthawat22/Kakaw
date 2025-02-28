@@ -205,8 +205,8 @@ fun KakawBoard() {
                                     moveMode,
                                 )
                             } else {
-                                val dove = gameState.value.board[position]
-                                if (dove != null && dove.player == gameState.value.currentPlayer) {
+                                val bird = gameState.value.board[position]
+                                if (bird != null && bird.player == gameState.value.currentPlayer) {
                                     selectedPosition.value = position
                                     showDialog.value = true
                                 } else {
