@@ -33,10 +33,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
@@ -210,6 +213,7 @@ fun TokyoDovesBoard() {
                     }
             ) {
                 Canvas(modifier = Modifier.size(boardWidthDp, boardHeightDp)) {
+                    val density = Density(density = this.density, fontScale = 1f)
                     drawRect(Color.Transparent, Offset.Zero, size)
 
                     for (row in 0 until boardHeight) {
@@ -231,36 +235,19 @@ fun TokyoDovesBoard() {
                                             gameState.value.board[selectedPosition.value!!]!!
                                         })
                                 ) {
-                                    drawRect( // Highlight valid moves
-                                        color = Color(0xFFBDBCBC),
-                                        topLeft = offset,
-                                        size = Size(cellSize.toPx(), cellSize.toPx())
-                                    )
+                                    drawSquare(this, offset, cellSize, Color(0xFFBDBCBC), density)
                                 } else if (selectedDove.value != null && isPlacementValid(
                                         position,
                                         gameState.value.board,
                                         selectedDove.value!!.player
                                     )
                                 ) {
-                                    drawRect(
-                                        color = Color(0xFFBDBCBC),
-                                        topLeft = offset,
-                                        size = Size(cellSize.toPx(), cellSize.toPx())
-                                    )
+                                    drawSquare(this, offset, cellSize, Color(0xFFBDBCBC), density)
                                 } else {
-                                    drawRect(
-                                        color = Color.Transparent,
-                                        topLeft = offset,
-                                        size = Size(cellSize.toPx(), cellSize.toPx())
-                                    )
+                                    drawSquare(this, offset, cellSize, Color.Transparent, density)
                                 }
                             } else {
-                                // Draw empty space
-                                drawRect(
-                                    color = Color.Transparent,
-                                    topLeft = offset,
-                                    size = Size(cellSize.toPx(), cellSize.toPx())
-                                )
+                                drawSquare(this, offset, cellSize, Color.Transparent, density)
                             }
                         }
                     }
@@ -360,5 +347,21 @@ fun TokyoDovesBoard() {
         ) { dove, _ ->
             selectedDove.value = dove
         }
+    }
+}
+
+private fun drawSquare(
+    drawScope: DrawScope,
+    offset: Offset,
+    cellSize: Dp,
+    highlightColor: Color,
+    density: Density
+) {
+    with(density) {
+        drawScope.drawRect(
+            color = highlightColor,
+            topLeft = offset,
+            size = Size(cellSize.toPx(), cellSize.toPx())
+        )
     }
 }
