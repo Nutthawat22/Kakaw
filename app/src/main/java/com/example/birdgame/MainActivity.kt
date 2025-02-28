@@ -34,9 +34,14 @@ class MainActivity : ComponentActivity() {
                     val showStartScreen = remember { mutableStateOf(true) }
 
                     if (showStartScreen.value) {
-                        StartScreen(onNewGameClick = {
-                            showStartScreen.value = false
-                        })
+                        StartScreen(
+                            onNewGameClick = {
+                                showStartScreen.value = false
+                            },
+                            onContinueGameClick = {
+                                showStartScreen.value = false
+                            }
+                        )
                     } else {
                         Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
                             KakawBoard()

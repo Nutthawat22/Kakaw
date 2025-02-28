@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.example.birdgame.R
 
 @Composable
-fun StartScreen(onNewGameClick: () -> Unit) {
+fun StartScreen(onNewGameClick: () -> Unit, onContinueGameClick: () -> Unit) {
     Image(
         painter = painterResource(id = R.drawable.background2),
         contentDescription = "App Background",
@@ -42,16 +42,25 @@ fun StartScreen(onNewGameClick: () -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "NEW GAME",
+            text = "KAKAW",
             fontSize = 48.sp,
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(48.dp))
 
         Button(onClick = onNewGameClick) {
             Text(
-                text = "PLAY", fontSize = 24.sp,
+                text = "NEW GAME", fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(onClick = onContinueGameClick) {
+            Text(
+                text = "continue the game", fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
         }
