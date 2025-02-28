@@ -17,7 +17,7 @@ enum class BirdType {
 
 data class Bird(val type: BirdType, val player: Player, val drawableResId: Int)
 
-fun getDoveDrawableResId(type: BirdType, player: Player): Int {
+fun getBirdDrawableResId(type: BirdType, player: Player): Int {
     return when (type) {
         BirdType.REGULAR -> if (player == Player.PLAYER1) R.drawable.regular else R.drawable.regular_red
         BirdType.SHOOTER -> if (player == Player.PLAYER1) R.drawable.shooter else R.drawable.shooter_red

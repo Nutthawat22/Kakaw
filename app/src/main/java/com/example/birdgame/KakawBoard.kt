@@ -53,7 +53,7 @@ import com.example.birdgame.model.MAX_BOARD_WIDTH
 import com.example.birdgame.model.Player
 import com.example.birdgame.model.Position
 import com.example.birdgame.model.calculateBoardBounds
-import com.example.birdgame.model.getDoveDrawableResId
+import com.example.birdgame.model.getBirdDrawableResId
 
 fun initializeGame(): GameState {
     val boardWidth = 3
@@ -61,20 +61,20 @@ fun initializeGame(): GameState {
     val board = mutableMapOf<Position, Bird>()
 
     board[Position(2, 1)] =
-        Bird(BirdType.BOSS, Player.PLAYER1, getDoveDrawableResId(BirdType.BOSS, Player.PLAYER1))
+        Bird(BirdType.BOSS, Player.PLAYER1, getBirdDrawableResId(BirdType.BOSS, Player.PLAYER1))
     board[Position(1, 1)] =
-        Bird(BirdType.BOSS, Player.PLAYER2, getDoveDrawableResId(BirdType.BOSS, Player.PLAYER2))
+        Bird(BirdType.BOSS, Player.PLAYER2, getBirdDrawableResId(BirdType.BOSS, Player.PLAYER2))
 
     return GameState(board, boardWidth, boardHeight, Player.PLAYER1)
 }
 
 private fun createPlayerBirds(player: Player): List<Bird> {
     return listOf(
-        Bird(BirdType.REGULAR, player, getDoveDrawableResId(BirdType.REGULAR, player)),
-        Bird(BirdType.SHOOTER, player, getDoveDrawableResId(BirdType.SHOOTER, player)),
-        Bird(BirdType.HIT_MAN, player, getDoveDrawableResId(BirdType.HIT_MAN, player)),
-        Bird(BirdType.AGENT, player, getDoveDrawableResId(BirdType.AGENT, player)),
-        Bird(BirdType.BOMBER, player, getDoveDrawableResId(BirdType.BOMBER, player))
+        Bird(BirdType.REGULAR, player, getBirdDrawableResId(BirdType.REGULAR, player)),
+        Bird(BirdType.SHOOTER, player, getBirdDrawableResId(BirdType.SHOOTER, player)),
+        Bird(BirdType.HIT_MAN, player, getBirdDrawableResId(BirdType.HIT_MAN, player)),
+        Bird(BirdType.AGENT, player, getBirdDrawableResId(BirdType.AGENT, player)),
+        Bird(BirdType.BOMBER, player, getBirdDrawableResId(BirdType.BOMBER, player))
     )
 }
 
@@ -82,36 +82,36 @@ private fun createPlayerBirds(player: Player): List<Bird> {
 fun PlayerBirdLine(
     birds: List<Bird>,
     selectedBird: Bird?,
-    onDoveClick: (Bird, Offset) -> Unit
+    onBirdClick: (Bird, Offset) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceAround
     ) {
-        birds.forEach { dove ->
+        birds.forEach { bird ->
             Box(
                 modifier = Modifier
                     .size(80.dp)
                     .clickable {
-                        onDoveClick(
-                            dove,
+                        onBirdClick(
+                            bird,
                             Offset.Zero
                         )
                     }
                     .border(
-                        width = if (dove == selectedBird) 2.dp else 0.dp,
-                        color = if (dove == selectedBird) Color.Green else Color.Transparent,
+                        width = if (bird == selectedBird) 2.dp else 0.dp,
+                        color = if (bird == selectedBird) Color.Green else Color.Transparent,
                         shape = RectangleShape
                     )
             ) {
                 Image(
-                    painter = painterResource(id = dove.drawableResId),
-                    contentDescription = dove.type.name,
+                    painter = painterResource(id = bird.drawableResId),
+                    contentDescription = bird.type.name,
                     modifier = Modifier
                         .fillMaxSize()
                         .then(
-                            if (dove.player == Player.PLAYER2) { // Flip red birds
+                            if (bird.player == Player.PLAYER2) { // Flip red birds
                                 Modifier.scale(scaleX = -1f, scaleY = -1f)
                             } else {
                                 Modifier
@@ -164,8 +164,8 @@ fun KakawBoard() {
         PlayerBirdLine(
             birds = player2Birds,
             selectedBird = selectedBird.value
-        ) { dove, _ ->
-            selectedBird.value = dove
+        ) { bird, _ ->
+            selectedBird.value = bird
         }
 
         Column(
@@ -283,22 +283,22 @@ fun KakawBoard() {
 
                 // Overlay images
                 val density = LocalDensity.current
-                gameState.value.board.forEach { (position, dove) ->
+                gameState.value.board.forEach { (position, bird) ->
                     key(position) {
                         val offset = Offset(
                             (position.col - boardBounds.value.minCol + 1) * with(density) { cellSize.toPx() },
                             (position.row - boardBounds.value.minRow + 1) * with(density) { cellSize.toPx() }
                         )
                         Image(
-                            painter = painterResource(id = dove.drawableResId),
-                            contentDescription = dove.type.name,
+                            painter = painterResource(id = bird.drawableResId),
+                            contentDescription = bird.type.name,
                             modifier = Modifier
                                 .size(cellSize)
                                 .offset(
                                     with(density) { offset.x.toDp() },
                                     with(density) { offset.y.toDp() })
                                 .then(
-                                    if (dove.player == Player.PLAYER2) { // Flip red birds
+                                    if (bird.player == Player.PLAYER2) { // Flip red birds
                                         Modifier.scale(scaleX = -1f, scaleY = -1f)
                                     } else {
                                         Modifier
@@ -325,10 +325,10 @@ fun KakawBoard() {
                             verticalArrangement = Arrangement.Center
                         ) {
                             selectedPosition.value?.let { position ->
-                                gameState.value.board[position]?.let { dove ->
+                                gameState.value.board[position]?.let { bird ->
                                     Image(
-                                        painter = painterResource(id = dove.drawableResId),
-                                        contentDescription = dove.type.name,
+                                        painter = painterResource(id = bird.drawableResId),
+                                        contentDescription = bird.type.name,
                                         modifier = Modifier.size(200.dp)
                                     )
                                 }
@@ -372,8 +372,8 @@ fun KakawBoard() {
         PlayerBirdLine(
             birds = player1Birds,
             selectedBird = selectedBird.value
-        ) { dove, _ ->
-            selectedBird.value = dove
+        ) { bird, _ ->
+            selectedBird.value = bird
         }
     }
 }
