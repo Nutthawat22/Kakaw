@@ -216,6 +216,23 @@ fun KakawBoard() {
                     val density = Density(density = this.density, fontScale = 1f)
                     drawRect(Color.Transparent, Offset.Zero, size)
 
+                    for (row in 0..boardHeight) {
+                        drawLine(
+                            color = Color(0xFFBDBCBC),
+                            start = Offset(0f, row * cellSize.toPx()),
+                            end = Offset(boardWidthDp.toPx(), row * cellSize.toPx()),
+                            strokeWidth = 5f
+                        )
+                    }
+                    for (col in 0..boardWidth) {
+                        drawLine(
+                            color = Color(0xFFBDBCBC),
+                            start = Offset(col * cellSize.toPx(), 0f),
+                            end = Offset(col * cellSize.toPx(), boardHeightDp.toPx()),
+                            strokeWidth = 5f
+                        )
+                    }
+
                     for (row in 0 until boardHeight) {
                         for (col in 0 until boardWidth) {
                             val actualRow = row + boardBounds.value.minRow - 1
