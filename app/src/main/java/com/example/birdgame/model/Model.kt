@@ -6,7 +6,7 @@ data class Position(val row: Int, val col: Int)
 
 enum class Player { PLAYER1, PLAYER2 }
 
-enum class DoveType {
+enum class BirdType {
     REGULAR,
     SHOOTER,
     HIT_MAN,
@@ -15,21 +15,21 @@ enum class DoveType {
     BOSS
 }
 
-data class Dove(val type: DoveType, val player: Player, val drawableResId: Int)
+data class Bird(val type: BirdType, val player: Player, val drawableResId: Int)
 
-fun getDoveDrawableResId(type: DoveType, player: Player): Int {
+fun getDoveDrawableResId(type: BirdType, player: Player): Int {
     return when (type) {
-        DoveType.REGULAR -> if (player == Player.PLAYER1) R.drawable.regular else R.drawable.regular_red
-        DoveType.SHOOTER -> if (player == Player.PLAYER1) R.drawable.shooter else R.drawable.shooter_red
-        DoveType.HIT_MAN -> if (player == Player.PLAYER1) R.drawable.hitman else R.drawable.hitman_red
-        DoveType.AGENT -> if (player == Player.PLAYER1) R.drawable.agent else R.drawable.agent_red
-        DoveType.BOMBER -> if (player == Player.PLAYER1) R.drawable.bomber else R.drawable.bomber_red
-        DoveType.BOSS -> if (player == Player.PLAYER1) R.drawable.boss else R.drawable.boss_red
+        BirdType.REGULAR -> if (player == Player.PLAYER1) R.drawable.regular else R.drawable.regular_red
+        BirdType.SHOOTER -> if (player == Player.PLAYER1) R.drawable.shooter else R.drawable.shooter_red
+        BirdType.HIT_MAN -> if (player == Player.PLAYER1) R.drawable.hitman else R.drawable.hitman_red
+        BirdType.AGENT -> if (player == Player.PLAYER1) R.drawable.agent else R.drawable.agent_red
+        BirdType.BOMBER -> if (player == Player.PLAYER1) R.drawable.bomber else R.drawable.bomber_red
+        BirdType.BOSS -> if (player == Player.PLAYER1) R.drawable.boss else R.drawable.boss_red
     }
 }
 
 data class GameState(
-    val board: Map<Position, Dove>,
+    val board: Map<Position, Bird>,
     val boardWidth: Int,
     val boardHeight: Int,
     val currentPlayer: Player
@@ -45,7 +45,7 @@ data class BoardBounds(
     val maxCol: Int
 )
 
-fun calculateBoardBounds(board: Map<Position, Dove>): BoardBounds {
+fun calculateBoardBounds(board: Map<Position, Bird>): BoardBounds {
     val keys = board.keys
     val minRow = keys.minOfOrNull { it.row } ?: 0
     val maxRow = keys.maxOfOrNull { it.row } ?: 0

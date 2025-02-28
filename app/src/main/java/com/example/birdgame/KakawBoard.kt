@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
-import com.example.birdgame.model.Dove
-import com.example.birdgame.model.DoveType
+import com.example.birdgame.model.Bird
+import com.example.birdgame.model.BirdType
 import com.example.birdgame.model.GameState
 import com.example.birdgame.model.MAX_BOARD_HEIGHT
 import com.example.birdgame.model.MAX_BOARD_WIDTH
@@ -56,31 +56,31 @@ import com.example.birdgame.model.getDoveDrawableResId
 fun initializeGame(): GameState {
     val boardWidth = 3
     val boardHeight = 4
-    val board = mutableMapOf<Position, Dove>()
+    val board = mutableMapOf<Position, Bird>()
 
     board[Position(2, 1)] =
-        Dove(DoveType.BOSS, Player.PLAYER1, getDoveDrawableResId(DoveType.BOSS, Player.PLAYER1))
+        Bird(BirdType.BOSS, Player.PLAYER1, getDoveDrawableResId(BirdType.BOSS, Player.PLAYER1))
     board[Position(1, 1)] =
-        Dove(DoveType.BOSS, Player.PLAYER2, getDoveDrawableResId(DoveType.BOSS, Player.PLAYER2))
+        Bird(BirdType.BOSS, Player.PLAYER2, getDoveDrawableResId(BirdType.BOSS, Player.PLAYER2))
 
     return GameState(board, boardWidth, boardHeight, Player.PLAYER1)
 }
 
-private fun createPlayerBirds(player: Player): List<Dove> {
+private fun createPlayerBirds(player: Player): List<Bird> {
     return listOf(
-        Dove(DoveType.REGULAR, player, getDoveDrawableResId(DoveType.REGULAR, player)),
-        Dove(DoveType.SHOOTER, player, getDoveDrawableResId(DoveType.SHOOTER, player)),
-        Dove(DoveType.HIT_MAN, player, getDoveDrawableResId(DoveType.HIT_MAN, player)),
-        Dove(DoveType.AGENT, player, getDoveDrawableResId(DoveType.AGENT, player)),
-        Dove(DoveType.BOMBER, player, getDoveDrawableResId(DoveType.BOMBER, player))
+        Bird(BirdType.REGULAR, player, getDoveDrawableResId(BirdType.REGULAR, player)),
+        Bird(BirdType.SHOOTER, player, getDoveDrawableResId(BirdType.SHOOTER, player)),
+        Bird(BirdType.HIT_MAN, player, getDoveDrawableResId(BirdType.HIT_MAN, player)),
+        Bird(BirdType.AGENT, player, getDoveDrawableResId(BirdType.AGENT, player)),
+        Bird(BirdType.BOMBER, player, getDoveDrawableResId(BirdType.BOMBER, player))
     )
 }
 
 @Composable
 fun PlayerBirdLine(
-    doves: List<Dove>,
-    selectedDove: Dove?,
-    onDoveClick: (Dove, Offset) -> Unit
+    birds: List<Bird>,
+    selectedBird: Bird?,
+    onDoveClick: (Bird, Offset) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -88,7 +88,7 @@ fun PlayerBirdLine(
             .padding(vertical = 16.dp)
         ,horizontalArrangement = Arrangement.SpaceAround
     ) {
-        doves.forEach { dove ->
+        birds.forEach { dove ->
             Box(
                 modifier = Modifier
                     .size(80.dp)
@@ -99,8 +99,8 @@ fun PlayerBirdLine(
                         )
                     }
                     .border(
-                        width = if (dove == selectedDove) 2.dp else 0.dp,
-                        color = if (dove == selectedDove) Color.Green else Color.Transparent,
+                        width = if (dove == selectedBird) 2.dp else 0.dp,
+                        color = if (dove == selectedBird) Color.Green else Color.Transparent,
                         shape = RectangleShape
                     )
             ) {
@@ -123,18 +123,18 @@ fun PlayerBirdLine(
 }
 
 @Composable
-fun TokyoDovesBoard() {
+fun KakawBoard() {
     val gameState = remember { mutableStateOf(initializeGame()) }
     val boardBounds = remember { derivedStateOf { calculateBoardBounds(gameState.value.board) } }
-    val player1Doves = remember { mutableStateListOf<Dove>() }
-    val player2Doves = remember { mutableStateListOf<Dove>() }
-    val selectedDove = remember { mutableStateOf<Dove?>(null) }
+    val player1Birds = remember { mutableStateListOf<Bird>() }
+    val player2Birds = remember { mutableStateListOf<Bird>() }
+    val selectedBird = remember { mutableStateOf<Bird?>(null) }
     val selectedPosition = remember { mutableStateOf<Position?>(null) }
     val showDialog = remember { mutableStateOf(false) }
     val moveMode = remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        player1Doves.addAll(createPlayerBirds(Player.PLAYER1))
-        player2Doves.addAll(createPlayerBirds(Player.PLAYER2))
+        player1Birds.addAll(createPlayerBirds(Player.PLAYER1))
+        player2Birds.addAll(createPlayerBirds(Player.PLAYER2))
     }
 
     Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
@@ -153,10 +153,10 @@ fun TokyoDovesBoard() {
         )
 
         PlayerBirdLine(
-            doves = player2Doves,
-            selectedDove = selectedDove.value
+            birds = player2Birds,
+            selectedBird = selectedBird.value
         ) { dove, _ ->
-            selectedDove.value = dove
+            selectedBird.value = dove
         }
 
         Column(
@@ -203,9 +203,9 @@ fun TokyoDovesBoard() {
                                         position,
                                         gameState,
                                         selectedPosition,
-                                        selectedDove,
-                                        player1Doves,
-                                        player2Doves
+                                        selectedBird,
+                                        player1Birds,
+                                        player2Birds
                                     )
                                 }
                             }
@@ -236,10 +236,10 @@ fun TokyoDovesBoard() {
                                         })
                                 ) {
                                     drawSquare(this, offset, cellSize, Color(0xFFBDBCBC), density)
-                                } else if (selectedDove.value != null && isPlacementValid(
+                                } else if (selectedBird.value != null && isPlacementValid(
                                         position,
                                         gameState.value.board,
-                                        selectedDove.value!!.player
+                                        selectedBird.value!!.player
                                     )
                                 ) {
                                     drawSquare(this, offset, cellSize, Color(0xFFBDBCBC), density)
@@ -316,7 +316,7 @@ fun TokyoDovesBoard() {
                         }
                     },
                     dismissButton = {
-                        if (gameState.value.board[selectedPosition.value]?.type != DoveType.BOSS) {
+                        if (gameState.value.board[selectedPosition.value]?.type != BirdType.BOSS) {
                             val updatedBoard = gameState.value.board.toMutableMap()
                             updatedBoard.remove(selectedPosition.value)
 
@@ -328,8 +328,8 @@ fun TokyoDovesBoard() {
                                             position,
                                             gameState,
                                             selectedPosition,
-                                            player1Doves,
-                                            player2Doves
+                                            player1Birds,
+                                            player2Birds
                                         )
                                     }
                                 }) {
@@ -342,10 +342,10 @@ fun TokyoDovesBoard() {
             }
         }
         PlayerBirdLine(
-            doves = player1Doves,
-            selectedDove = selectedDove.value
+            birds = player1Birds,
+            selectedBird = selectedBird.value
         ) { dove, _ ->
-            selectedDove.value = dove
+            selectedBird.value = dove
         }
     }
 }

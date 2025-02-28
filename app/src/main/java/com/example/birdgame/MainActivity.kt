@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = Color.Transparent
                     ) {
-                        TokyoDovesBoard()
+                        KakawBoard()
                     }
                 }
             }
@@ -44,6 +44,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun BirdGamePreview() {
     BirdGameTheme {
-        TokyoDovesBoard()
+        KakawBoard()
     }
 }

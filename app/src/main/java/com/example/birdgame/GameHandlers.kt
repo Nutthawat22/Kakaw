@@ -1,8 +1,8 @@
 package com.example.birdgame
 
 import androidx.compose.runtime.MutableState
-import com.example.birdgame.model.Dove
-import com.example.birdgame.model.DoveType
+import com.example.birdgame.model.Bird
+import com.example.birdgame.model.BirdType
 import com.example.birdgame.model.GameState
 import com.example.birdgame.model.Player
 import com.example.birdgame.model.Position
@@ -13,28 +13,28 @@ fun handleTap(
     position: Position,
     gameState: MutableState<GameState>,
     selectedPosition: MutableState<Position?>,
-    selectedDove: MutableState<Dove?>,
-    player1Doves: MutableList<Dove>,
-    player2Doves: MutableList<Dove>
+    selectedBird: MutableState<Bird?>,
+    player1Birds: MutableList<Bird>,
+    player2Birds: MutableList<Bird>
 ) {
     val dove = gameState.value.board[position]
     val player = gameState.value.currentPlayer
 
-    if (dove == null && selectedDove.value != null && selectedDove.value!!.player == player) {
+    if (dove == null && selectedBird.value != null && selectedBird.value!!.player == player) {
         if (isPlacementValid(position, gameState.value.board, player)) {
             val updatedBoard = gameState.value.board.toMutableMap()
-            updatedBoard[position] = selectedDove.value!!
+            updatedBoard[position] = selectedBird.value!!
             val newBounds = calculateBoardBounds(updatedBoard)
 
             if (newBounds.maxRow - newBounds.minRow + 1 <= 4 && newBounds.maxCol - newBounds.minCol + 1 <= 4) {
                 gameState.value = gameState.value.copy(board = updatedBoard, currentPlayer = if (player == Player.PLAYER1) Player.PLAYER2 else Player.PLAYER1)
                 if (player == Player.PLAYER1) {
-                    player1Doves.remove(selectedDove.value!!)
+                    player1Birds.remove(selectedBird.value!!)
                 } else {
-                    player2Doves.remove(selectedDove.value!!)
+                    player2Birds.remove(selectedBird.value!!)
                 }
 
-                selectedDove.value = null
+                selectedBird.value = null
                 selectedPosition.value = null
 
             } else {
@@ -52,13 +52,13 @@ fun handleRemove(
     position: Position,
     gameState: MutableState<GameState>,
     selectedPosition: MutableState<Position?>,
-    player1Doves: MutableList<Dove>,
-    player2Doves: MutableList<Dove>
+    player1Birds: MutableList<Bird>,
+    player2Birds: MutableList<Bird>
 ) {
     val dove = gameState.value.board[position]
     val player = gameState.value.currentPlayer
 
-    if (dove != null && dove.player == player && dove.type != DoveType.BOSS) {
+    if (dove != null && dove.player == player && dove.type != BirdType.BOSS) {
         val updatedBoard = gameState.value.board.toMutableMap()
         updatedBoard.remove(position)
 
@@ -70,9 +70,9 @@ fun handleRemove(
             selectedPosition.value = null
 
             if (player == Player.PLAYER1) {
-                player1Doves.add(dove)
+                player1Birds.add(dove)
             } else {
-                player2Doves.add(dove)
+                player2Birds.add(dove)
             }
 
         } else {
@@ -115,7 +115,7 @@ fun handleMoveSelection(
     }
 }
 
-fun isMoveValid(from: Position, to: Position, doveType: DoveType, board: Map<Position, Dove>): Boolean {
+fun isMoveValid(from: Position, to: Position, birdType: BirdType, board: Map<Position, Bird>): Boolean {
     val rowDiff = abs(from.row - to.row)
     val colDiff = abs(from.col - to.col)
 
@@ -135,11 +135,11 @@ fun isMoveValid(from: Position, to: Position, doveType: DoveType, board: Map<Pos
 
     if (occupiedRows.size > 4 || occupiedCols.size > 4) return false
 
-    return when (doveType) {
-        DoveType.REGULAR -> rowDiff + colDiff == 1
-        DoveType.SHOOTER -> rowDiff == 1 && colDiff == 1
-        DoveType.HIT_MAN -> rowDiff <= 1 && colDiff <= 1 && (rowDiff != 0 || colDiff != 0)
-        DoveType.AGENT -> {
+    return when (birdType) {
+        BirdType.REGULAR -> rowDiff + colDiff == 1
+        BirdType.SHOOTER -> rowDiff == 1 && colDiff == 1
+        BirdType.HIT_MAN -> rowDiff <= 1 && colDiff <= 1 && (rowDiff != 0 || colDiff != 0)
+        BirdType.AGENT -> {
             if ((rowDiff == 0 && colDiff != 0) || (rowDiff != 0 && colDiff == 0)) {
                 val rowDirection = if (to.row > from.row) 1 else if (to.row < from.row) -1 else 0
                 val colDirection = if (to.col > from.col) 1 else if (to.col < from.col) -1 else 0
@@ -159,12 +159,12 @@ fun isMoveValid(from: Position, to: Position, doveType: DoveType, board: Map<Pos
                 false
             }
         }
-        DoveType.BOMBER -> (rowDiff == 2 && colDiff == 1) || (rowDiff == 1 && colDiff == 2)
-        DoveType.BOSS -> rowDiff <= 1 && colDiff <= 1 && (rowDiff != 0 || colDiff != 0)
+        BirdType.BOMBER -> (rowDiff == 2 && colDiff == 1) || (rowDiff == 1 && colDiff == 2)
+        BirdType.BOSS -> rowDiff <= 1 && colDiff <= 1 && (rowDiff != 0 || colDiff != 0)
     }
 }
 
-fun isPlacementValid(position: Position, board: Map<Position, Dove>, player: Player): Boolean {
+fun isPlacementValid(position: Position, board: Map<Position, Bird>, player: Player): Boolean {
     val adjacentPositions = getAdjacentPositions(position)
 
     var hasAdjacentOwnDove = false
@@ -185,7 +185,7 @@ fun isPlacementValid(position: Position, board: Map<Position, Dove>, player: Pla
 
     for (adjacentPosition in directAdjacentPositions) {
         val adjacentDove = board[adjacentPosition]
-        if (adjacentDove != null && adjacentDove.player != player && adjacentDove.type == DoveType.BOSS) {
+        if (adjacentDove != null && adjacentDove.player != player && adjacentDove.type == BirdType.BOSS) {
             return false
         }
     }
@@ -194,7 +194,7 @@ fun isPlacementValid(position: Position, board: Map<Position, Dove>, player: Pla
 
     // Simulate placement and check bounds
     val simulatedBoard = board.toMutableMap()
-    simulatedBoard[position] = Dove(DoveType.REGULAR, player, 0) // Dummy dove
+    simulatedBoard[position] = Bird(BirdType.REGULAR, player, 0) // Dummy dove
 
     val occupiedRows = simulatedBoard.keys.map { it.row }.distinct().sorted()
     val occupiedCols = simulatedBoard.keys.map { it.col }.distinct().sorted()
@@ -202,7 +202,7 @@ fun isPlacementValid(position: Position, board: Map<Position, Dove>, player: Pla
     return occupiedRows.size <= 4 && occupiedCols.size <= 4
 }
 
-fun isMoveValidBoardState(board: Map<Position, Dove>): Boolean {
+fun isMoveValidBoardState(board: Map<Position, Bird>): Boolean {
     if (board.isEmpty()) return true
 
     val visited = mutableSetOf<Position>()
