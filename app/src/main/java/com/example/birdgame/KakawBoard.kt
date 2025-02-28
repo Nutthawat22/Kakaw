@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -85,8 +87,7 @@ fun PlayerBirdLine(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp)
-        ,horizontalArrangement = Arrangement.SpaceAround
+            .padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceAround
     ) {
         birds.forEach { dove ->
             Box(
@@ -137,7 +138,15 @@ fun KakawBoard() {
         player2Birds.addAll(createPlayerBirds(Player.PLAYER2))
     }
 
-    Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .statusBarsPadding()
+            .pointerInput(Unit) {
+                detectTapGestures { _ ->
+                    selectedBird.value = null
+                }
+            }) {
         Text(
             text = "${if (gameState.value.currentPlayer == Player.PLAYER1) "Green" else "Red"} Player's Turn",
             fontSize = 30.sp,
@@ -174,10 +183,12 @@ fun KakawBoard() {
             val cellSize = 80.dp
             val boardWidthDp = boardWidth * cellSize
             val boardHeightDp = boardHeight * cellSize
+            val horizontalScrollState = rememberScrollState()
 
             Box(
                 modifier = Modifier
                     .size(boardWidthDp, boardHeightDp)
+                    .horizontalScroll(horizontalScrollState)
                     .pointerInput(Unit) {
                         detectTapGestures { offset ->
                             val col =
