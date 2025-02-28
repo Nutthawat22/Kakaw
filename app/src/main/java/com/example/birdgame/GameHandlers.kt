@@ -17,10 +17,10 @@ fun handleTap(
     player1Birds: MutableList<Bird>,
     player2Birds: MutableList<Bird>
 ) {
-    val dove = gameState.value.board[position]
+    val bird = gameState.value.board[position]
     val player = gameState.value.currentPlayer
 
-    if (dove == null && selectedBird.value != null && selectedBird.value!!.player == player) {
+    if (bird == null && selectedBird.value != null && selectedBird.value!!.player == player) {
         if (isPlacementValid(position, gameState.value.board, player)) {
             val updatedBoard = gameState.value.board.toMutableMap()
             updatedBoard[position] = selectedBird.value!!
@@ -55,10 +55,10 @@ fun handleRemove(
     player1Birds: MutableList<Bird>,
     player2Birds: MutableList<Bird>
 ) {
-    val dove = gameState.value.board[position]
+    val bird = gameState.value.board[position]
     val player = gameState.value.currentPlayer
 
-    if (dove != null && dove.player == player && dove.type != BirdType.BOSS) {
+    if (bird != null && bird.player == player && bird.type != BirdType.BOSS) {
         val updatedBoard = gameState.value.board.toMutableMap()
         updatedBoard.remove(position)
 
@@ -70,9 +70,9 @@ fun handleRemove(
             selectedPosition.value = null
 
             if (player == Player.PLAYER1) {
-                player1Birds.add(dove)
+                player1Birds.add(bird)
             } else {
-                player2Birds.add(dove)
+                player2Birds.add(bird)
             }
 
         } else {
@@ -89,12 +89,12 @@ fun handleMoveSelection(
     isBossMove: Boolean = false
 ) {
     val from = selectedPosition.value ?: return
-    val dove = gameState.value.board[from] ?: return
+    val bird = gameState.value.board[from] ?: return
 
-    if (isMoveValid(from, to, dove.type, gameState.value.board) && gameState.value.board[to] == null) {
+    if (isMoveValid(from, to, bird.type, gameState.value.board) && gameState.value.board[to] == null) {
         val updatedBoard = gameState.value.board.toMutableMap()
         updatedBoard.remove(from)
-        updatedBoard[to] = dove
+        updatedBoard[to] = bird
         val newBounds = calculateBoardBounds(updatedBoard)
 
         if (isMoveValidBoardState(updatedBoard) && newBounds.maxRow - newBounds.minRow + 1 <= 4 && newBounds.maxCol - newBounds.minCol + 1 <= 4) {
@@ -167,11 +167,11 @@ fun isMoveValid(from: Position, to: Position, birdType: BirdType, board: Map<Pos
 fun isPlacementValid(position: Position, board: Map<Position, Bird>, player: Player): Boolean {
     val adjacentPositions = getAdjacentPositions(position)
 
-    var hasAdjacentOwnDove = false
+    var hasAdjacentOwnBird = false
     for (adjacentPosition in adjacentPositions) {
-        val adjacentDove = board[adjacentPosition]
-        if (adjacentDove != null && adjacentDove.player == player) {
-            hasAdjacentOwnDove = true
+        val adjacentBird = board[adjacentPosition]
+        if (adjacentBird != null && adjacentBird.player == player) {
+            hasAdjacentOwnBird = true
             break
         }
     }
@@ -184,17 +184,17 @@ fun isPlacementValid(position: Position, board: Map<Position, Bird>, player: Pla
     )
 
     for (adjacentPosition in directAdjacentPositions) {
-        val adjacentDove = board[adjacentPosition]
-        if (adjacentDove != null && adjacentDove.player != player && adjacentDove.type == BirdType.BOSS) {
+        val adjacentBird = board[adjacentPosition]
+        if (adjacentBird != null && adjacentBird.player != player && adjacentBird.type == BirdType.BOSS) {
             return false
         }
     }
 
-    if (!hasAdjacentOwnDove) return false
+    if (!hasAdjacentOwnBird) return false
 
     // Simulate placement and check bounds
     val simulatedBoard = board.toMutableMap()
-    simulatedBoard[position] = Bird(BirdType.REGULAR, player, 0) // Dummy dove
+    simulatedBoard[position] = Bird(BirdType.REGULAR, player, 0) // Dummy bird
 
     val occupiedRows = simulatedBoard.keys.map { it.row }.distinct().sorted()
     val occupiedCols = simulatedBoard.keys.map { it.col }.distinct().sorted()
