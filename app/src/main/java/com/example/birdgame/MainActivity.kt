@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
                         )
                     } else {
                         Surface(modifier = Modifier.fillMaxSize(), color = Color.Transparent) {
-                            KakawBoard()
+                            Ka_kawBoard()
                         }
                     }
                 }
@@ -56,7 +56,7 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun BirdGamePreview() {
         BirdGameTheme {
-            KakawBoard()
+            Ka_kawBoard()
         }
     }
 }

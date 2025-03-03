@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
 import com.example.birdgame.model.Bird
 import com.example.birdgame.model.BirdType
+import com.example.birdgame.model.BoardBounds
 import com.example.birdgame.model.GameState
 import com.example.birdgame.model.MAX_BOARD_HEIGHT
 import com.example.birdgame.model.MAX_BOARD_WIDTH
@@ -80,31 +81,27 @@ private fun createPlayerBirds(player: Player): List<Bird> {
 
 @Composable
 fun PlayerBirdLine(
-    birds: List<Bird>,
-    selectedBird: Bird?,
-    onBirdClick: (Bird, Offset) -> Unit
+    birds: List<Bird>, selectedBird: Bird?, onBirdClick: (Bird, Offset) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceAround
+            .padding(vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceAround
     ) {
         birds.forEach { bird ->
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clickable {
-                        onBirdClick(
-                            bird,
-                            Offset.Zero
-                        )
-                    }
-                    .border(
-                        width = if (bird == selectedBird) 2.dp else 0.dp,
-                        color = if (bird == selectedBird) Color.Green else Color.Transparent,
-                        shape = RectangleShape
+            Box(modifier = Modifier
+                .size(80.dp)
+                .clickable {
+                    onBirdClick(
+                        bird, Offset.Zero
                     )
-            ) {
+                }
+                .border(
+                    width = if (bird == selectedBird) 2.dp else 0.dp,
+                    color = if (bird == selectedBird) Color.Green else Color.Transparent,
+                    shape = RectangleShape
+                )) {
                 Image(
                     painter = painterResource(id = bird.drawableResId),
                     contentDescription = bird.type.name,
@@ -124,7 +121,7 @@ fun PlayerBirdLine(
 }
 
 @Composable
-fun KakawBoard() {
+fun Ka_kawBoard() {
     val gameState = remember { mutableStateOf(initializeGame()) }
     val boardBounds = remember { derivedStateOf { calculateBoardBounds(gameState.value.board) } }
     val player1Birds = remember { mutableStateListOf<Bird>() }
@@ -133,6 +130,7 @@ fun KakawBoard() {
     val selectedPosition = remember { mutableStateOf<Position?>(null) }
     val showDialog = remember { mutableStateOf(false) }
     val moveMode = remember { mutableStateOf(false) }
+    val showWinDialog = remember { mutableStateOf<Player?>(null) }
     LaunchedEffect(Unit) {
         player1Birds.addAll(createPlayerBirds(Player.PLAYER1))
         player2Birds.addAll(createPlayerBirds(Player.PLAYER2))
@@ -203,6 +201,7 @@ fun KakawBoard() {
                                     gameState,
                                     selectedPosition,
                                     moveMode,
+                                    onWin = { winner -> showWinDialog.value = winner }
                                 )
                             } else {
                                 val bird = gameState.value.board[position]
@@ -216,7 +215,8 @@ fun KakawBoard() {
                                         selectedPosition,
                                         selectedBird,
                                         player1Birds,
-                                        player2Birds
+                                        player2Birds,
+                                        onWin = { winner -> showWinDialog.value = winner }
                                     )
                                 }
                             }
@@ -226,7 +226,6 @@ fun KakawBoard() {
                 Canvas(modifier = Modifier.size(boardWidthDp, boardHeightDp)) {
                     val density = Density(density = this.density, fontScale = 1f)
                     drawRect(Color.Transparent, Offset.Zero, size)
-
                     for (row in 0..boardHeight) {
                         drawLine(
                             color = Color(0xFFBDBCBC),
@@ -282,88 +281,40 @@ fun KakawBoard() {
                 }
 
                 // Overlay images
-                val density = LocalDensity.current
                 gameState.value.board.forEach { (position, bird) ->
                     key(position) {
-                        val offset = Offset(
-                            (position.col - boardBounds.value.minCol + 1) * with(density) { cellSize.toPx() },
-                            (position.row - boardBounds.value.minRow + 1) * with(density) { cellSize.toPx() }
-                        )
-                        Image(
-                            painter = painterResource(id = bird.drawableResId),
-                            contentDescription = bird.type.name,
-                            modifier = Modifier
-                                .size(cellSize)
-                                .offset(
-                                    with(density) { offset.x.toDp() },
-                                    with(density) { offset.y.toDp() })
-                                .then(
-                                    if (bird.player == Player.PLAYER2) { // Flip red birds
-                                        Modifier.scale(scaleX = -1f, scaleY = -1f)
-                                    } else {
-                                        Modifier
-                                    }
-                                )
-                        )
+                        DrawBird(position, bird, boardBounds.value, cellSize)
                     }
                 }
             }
-
-            if (showDialog.value) {
-                AlertDialog(
-                    onDismissRequest = { showDialog.value = false },
-                    title = {
-                        Text(
-                            text = selectedPosition.value?.let {
-                                "Choose action for ${gameState.value.board[it]?.type?.name ?: "Selected"} Bird"
-                            } ?: "Choose Action"
+            BirdActionDialog(showDialog = showDialog.value,
+                selectedPosition = selectedPosition.value,
+                gameState = gameState.value,
+                onMove = {
+                    showDialog.value = false
+                    moveMode.value = true
+                },
+                onRemove = {
+                    showDialog.value = false
+                    selectedPosition.value?.let { position ->
+                        handleRemove(
+                            position,
+                            gameState,
+                            selectedPosition,
+                            player1Birds,
+                            player2Birds,
+                            onWin = { winner -> showWinDialog.value = winner }
                         )
-                    },
-                    text = {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            selectedPosition.value?.let { position ->
-                                gameState.value.board[position]?.let { bird ->
-                                    Image(
-                                        painter = painterResource(id = bird.drawableResId),
-                                        contentDescription = bird.type.name,
-                                        modifier = Modifier.size(200.dp)
-                                    )
-                                }
-                            }
-                        }
-                    },
+                    }
+                })
+            if (showWinDialog.value != null) {
+                AlertDialog(
+                    onDismissRequest = { showWinDialog.value = null },
+                    title = { Text("Game Over") },
+                    text = { Text("${if (showWinDialog.value == Player.PLAYER1) "Green" else "Red"} Player Wins!") },
                     confirmButton = {
-                        Button(onClick = {
-                            showDialog.value = false
-                            moveMode.value = true
-                        }) {
-                            Text("Move")
-                        }
-                    },
-                    dismissButton = {
-                        if (gameState.value.board[selectedPosition.value]?.type != BirdType.BOSS) {
-                            val updatedBoard = gameState.value.board.toMutableMap()
-                            updatedBoard.remove(selectedPosition.value)
-
-                            if (isMoveValidBoardState(updatedBoard)) {
-                                Button(onClick = {
-                                    showDialog.value = false
-                                    selectedPosition.value?.let { position ->
-                                        handleRemove(
-                                            position,
-                                            gameState,
-                                            selectedPosition,
-                                            player1Birds,
-                                            player2Birds
-                                        )
-                                    }
-                                }) {
-                                    Text("Remove")
-                                }
-                            }
+                        Button(onClick = { showWinDialog.value = null }) {
+                            Text("OK")
                         }
                     }
                 )
@@ -378,18 +329,91 @@ fun KakawBoard() {
     }
 }
 
+@Composable
+fun BirdActionDialog(
+    showDialog: Boolean,
+    selectedPosition: Position?,
+    gameState: GameState,
+    onMove: () -> Unit,
+    onRemove: () -> Unit
+) {
+    if (showDialog && selectedPosition != null) {
+        AlertDialog(onDismissRequest = { /* Do nothing, as we handle the dismiss in the onMove and onRemove lambdas */ },
+            title = {
+                Text(
+                    text = "Choose action for ${gameState.board[selectedPosition]?.type?.name ?: "Selected"} Bird"
+                )
+            },
+            text = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    gameState.board[selectedPosition]?.let { bird ->
+                        Image(
+                            painter = painterResource(id = bird.drawableResId),
+                            contentDescription = bird.type.name,
+                            modifier = Modifier.size(200.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = onMove) {
+                    Text("Move")
+                }
+            },
+            dismissButton = {
+                if (gameState.board[selectedPosition]?.type != BirdType.BOSS) {
+                    val updatedBoard = gameState.board.toMutableMap()
+                    updatedBoard.remove(selectedPosition)
+
+                    if (isMoveValidBoardState(updatedBoard)) {
+                        Button(onClick = onRemove) {
+                            Text("Remove")
+                        }
+                    }
+                }
+            })
+    }
+}
+
 private fun drawSquare(
-    drawScope: DrawScope,
-    offset: Offset,
-    cellSize: Dp,
-    highlightColor: Color,
-    density: Density
+    drawScope: DrawScope, offset: Offset, cellSize: Dp, highlightColor: Color, density: Density
 ) {
     with(density) {
         drawScope.drawRect(
-            color = highlightColor,
-            topLeft = offset,
-            size = Size(cellSize.toPx(), cellSize.toPx())
+            color = highlightColor, topLeft = offset, size = Size(cellSize.toPx(), cellSize.toPx())
         )
     }
+}
+
+@Composable
+fun DrawBird(
+    position: Position,
+    bird: Bird,
+    boardBounds: BoardBounds,
+    cellSize: Dp
+) {
+    val density = LocalDensity.current
+    val offset = Offset(
+        (position.col - boardBounds.minCol + 1) * with(density) { cellSize.toPx() },
+        (position.row - boardBounds.minRow + 1) * with(density) { cellSize.toPx() }
+    )
+    Image(
+        painter = painterResource(id = bird.drawableResId),
+        contentDescription = bird.type.name,
+        modifier = Modifier
+            .size(cellSize)
+            .offset(
+                with(density) { offset.x.toDp() },
+                with(density) { offset.y.toDp() })
+            .then(
+                if (bird.player == Player.PLAYER2) { // Flip red birds
+                    Modifier.scale(scaleX = -1f, scaleY = -1f)
+                } else {
+                    Modifier
+                }
+            )
+    )
 }

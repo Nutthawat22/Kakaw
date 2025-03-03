@@ -15,7 +15,8 @@ fun handleTap(
     selectedPosition: MutableState<Position?>,
     selectedBird: MutableState<Bird?>,
     player1Birds: MutableList<Bird>,
-    player2Birds: MutableList<Bird>
+    player2Birds: MutableList<Bird>,
+    onWin: (Player) -> Unit
 ) {
     val bird = gameState.value.board[position]
     val player = gameState.value.currentPlayer
@@ -24,19 +25,14 @@ fun handleTap(
         if (isPlacementValid(position, gameState.value.board, player)) {
             val updatedBoard = gameState.value.board.toMutableMap()
             updatedBoard[position] = selectedBird.value!!
-            val newBounds = calculateBoardBounds(updatedBoard)
 
-            if (newBounds.maxRow - newBounds.minRow + 1 <= 4 && newBounds.maxCol - newBounds.minCol + 1 <= 4) {
-                gameState.value = gameState.value.copy(board = updatedBoard, currentPlayer = if (player == Player.PLAYER1) Player.PLAYER2 else Player.PLAYER1)
-                if (player == Player.PLAYER1) {
-                    player1Birds.remove(selectedBird.value!!)
-                } else {
-                    player2Birds.remove(selectedBird.value!!)
-                }
+            val (isValid, finalBoard) = isValidMoveAndGetUpdatedBoard(updatedBoard)
 
+            if (isValid) {
+                updateBoardAndCheckWin(gameState, finalBoard, if (player == Player.PLAYER1) Player.PLAYER2 else Player.PLAYER1, onWin)
+                updatePlayerBirds(player, selectedBird.value!!, player1Birds, player2Birds, false)
                 selectedBird.value = null
                 selectedPosition.value = null
-
             } else {
                 selectedPosition.value = null
             }
@@ -53,7 +49,8 @@ fun handleRemove(
     gameState: MutableState<GameState>,
     selectedPosition: MutableState<Position?>,
     player1Birds: MutableList<Bird>,
-    player2Birds: MutableList<Bird>
+    player2Birds: MutableList<Bird>,
+    onWin: (Player) -> Unit // Add onWin callback
 ) {
     val bird = gameState.value.board[position]
     val player = gameState.value.currentPlayer
@@ -63,18 +60,9 @@ fun handleRemove(
         updatedBoard.remove(position)
 
         if (isMoveValidBoardState(updatedBoard)) {
-            gameState.value = gameState.value.copy(
-                board = updatedBoard,
-                currentPlayer = if (player == Player.PLAYER1) Player.PLAYER2 else Player.PLAYER1
-            )
+            updateBoardAndCheckWin(gameState, updatedBoard, if (player == Player.PLAYER1) Player.PLAYER2 else Player.PLAYER1, onWin)
+            updatePlayerBirds(player, bird, player1Birds, player2Birds, true)
             selectedPosition.value = null
-
-            if (player == Player.PLAYER1) {
-                player1Birds.add(bird)
-            } else {
-                player2Birds.add(bird)
-            }
-
         } else {
             selectedPosition.value = null
         }
@@ -86,7 +74,8 @@ fun handleMoveSelection(
     gameState: MutableState<GameState>,
     selectedPosition: MutableState<Position?>,
     moveMode: MutableState<Boolean>,
-    isBossMove: Boolean = false
+    isBossMove: Boolean = false,
+    onWin: (Player) -> Unit
 ) {
     val from = selectedPosition.value ?: return
     val bird = gameState.value.board[from] ?: return
@@ -95,16 +84,13 @@ fun handleMoveSelection(
         val updatedBoard = gameState.value.board.toMutableMap()
         updatedBoard.remove(from)
         updatedBoard[to] = bird
-        val newBounds = calculateBoardBounds(updatedBoard)
 
-        if (isMoveValidBoardState(updatedBoard) && newBounds.maxRow - newBounds.minRow + 1 <= 4 && newBounds.maxCol - newBounds.minCol + 1 <= 4) {
-            gameState.value = gameState.value.copy(
-                board = updatedBoard,
-                currentPlayer = if (gameState.value.currentPlayer == Player.PLAYER1 || isBossMove) Player.PLAYER2 else Player.PLAYER1
-            )
+        val (isValid, finalBoard) = isValidMoveAndGetUpdatedBoard(updatedBoard)
+
+        if (isValid) {
+            updateBoardAndCheckWin(gameState, finalBoard, if (gameState.value.currentPlayer == Player.PLAYER1 || isBossMove) Player.PLAYER2 else Player.PLAYER1, onWin)
             selectedPosition.value = null
             moveMode.value = false
-
         } else {
             selectedPosition.value = null
             moveMode.value = false
@@ -244,4 +230,71 @@ private fun getAdjacentPositions(position: Position): List<Position> {
         Position(position.row + 1, position.col - 1),
         Position(position.row + 1, position.col + 1)
     )
+}
+
+fun checkWinCondition(gameState: GameState): Player? {
+    val bossPositions = gameState.board.filterValues { it.type == BirdType.BOSS }
+
+    for ((position, boss) in bossPositions) {
+        val adjacentPositions = listOf(
+            Position(position.row - 1, position.col),
+            Position(position.row + 1, position.col),
+            Position(position.row, position.col - 1),
+            Position(position.row, position.col + 1)
+        )
+
+        val surroundingBirds = adjacentPositions.count {
+            gameState.board.containsKey(it) || isEdgePositionForBoss(it, gameState.board)
+        }
+
+        if (surroundingBirds == 4) {
+            return if (boss.player == Player.PLAYER1) Player.PLAYER2 else Player.PLAYER1
+        }
+    }
+    return null
+}
+
+fun isEdgePositionForBoss(position: Position, board: Map<Position, Bird>): Boolean {
+    val occupiedRows = board.keys.map { it.row }.distinct().sorted()
+    val occupiedCols = board.keys.map { it.col }.distinct().sorted()
+
+    return occupiedRows.size == 4 && (position.row < occupiedRows.first() || position.row > occupiedRows.last()) ||
+            occupiedCols.size == 4 && (position.col < occupiedCols.first() || position.col > occupiedCols.last())
+}
+
+fun updateBoardAndCheckWin(
+    gameState: MutableState<GameState>,
+    updatedBoard: Map<Position, Bird>,
+    nextPlayer: Player,
+    onWin: (Player) -> Unit
+) {
+    val newGameState = gameState.value.copy(board = updatedBoard, currentPlayer = nextPlayer)
+    gameState.value = newGameState
+    checkWinCondition(newGameState)?.let { winner ->
+        onWin(winner)
+    }
+}
+
+fun isValidMoveAndGetUpdatedBoard(
+    newBoard: Map<Position, Bird>
+): Pair<Boolean, Map<Position, Bird>> {
+    val newBounds = calculateBoardBounds(newBoard)
+    val isValid = isMoveValidBoardState(newBoard) &&
+            newBounds.maxRow - newBounds.minRow + 1 <= 4 &&
+            newBounds.maxCol - newBounds.minCol + 1 <= 4
+    return Pair(isValid, newBoard)
+}
+
+fun updatePlayerBirds(
+    player: Player,
+    bird: Bird,
+    player1Birds: MutableList<Bird>,
+    player2Birds: MutableList<Bird>,
+    isAdding: Boolean
+) {
+    if (player == Player.PLAYER1) {
+        if (isAdding) player1Birds.add(bird) else player1Birds.remove(bird)
+    } else {
+        if (isAdding) player2Birds.add(bird) else player2Birds.remove(bird)
+    }
 }

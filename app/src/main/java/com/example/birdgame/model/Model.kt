@@ -45,39 +45,18 @@ data class BoardBounds(
     val maxCol: Int
 )
 
-fun calculateBoardBounds(board: Map<Position, Bird>): BoardBounds {
-    val keys = board.keys
-    val minRow = keys.minOfOrNull { it.row } ?: 0
-    val maxRow = keys.maxOfOrNull { it.row } ?: 0
-    val minCol = keys.minOfOrNull { it.col } ?: 0
-    val maxCol = keys.maxOfOrNull { it.col } ?: 0
-
-    val width = maxCol - minCol + 1
-    val height = maxRow - minRow + 1
-
-    val adjustedMinRow = if (height > MAX_BOARD_HEIGHT) {
-        (minRow + maxRow - MAX_BOARD_HEIGHT + 1) / 2
-    } else {
-        minRow
+fun calculateBoardBounds(board: Map<Position, Bird>, selectedPosition: Position? = null): BoardBounds {
+    if (board.isEmpty()) {
+        return BoardBounds(0, 0, 0, 0)
     }
 
-    val adjustedMaxRow = if (height > MAX_BOARD_HEIGHT) {
-        adjustedMinRow + MAX_BOARD_HEIGHT - 1
-    } else {
-        maxRow
-    }
+    val rows = board.keys.map { it.row }
+    val cols = board.keys.map { it.col }
 
-    val adjustedMinCol = if (width > MAX_BOARD_WIDTH) {
-        (minCol + maxCol - MAX_BOARD_WIDTH + 1) / 2
-    } else {
-        minCol
-    }
+    val minRow = rows.minOrNull() ?: 0
+    val maxRow = rows.maxOrNull() ?: 0
+    val minCol = cols.minOrNull() ?: 0
+    val maxCol = cols.maxOrNull() ?: 0
 
-    val adjustedMaxCol = if (width > MAX_BOARD_WIDTH) {
-        adjustedMinCol + MAX_BOARD_WIDTH - 1
-    } else {
-        maxCol
-    }
-
-    return BoardBounds(adjustedMinRow, adjustedMaxRow, adjustedMinCol, adjustedMaxCol)
+    return BoardBounds(minRow, maxRow, minCol, maxCol)
 }

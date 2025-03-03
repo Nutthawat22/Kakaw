@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -21,7 +23,7 @@ import com.example.birdgame.R
 @Composable
 fun StartScreen(onNewGameClick: () -> Unit, onContinueGameClick: () -> Unit) {
     Image(
-        painter = painterResource(id = R.drawable.background2),
+        painter = painterResource(id = R.drawable.startbg),
         contentDescription = "App Background",
         modifier = Modifier.fillMaxSize(),
         contentScale = ContentScale.Crop,
@@ -33,35 +35,38 @@ fun StartScreen(onNewGameClick: () -> Unit, onContinueGameClick: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = "START",
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold
-        )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(148.dp))
 
-        Text(
-            text = "KAKAW",
-            fontSize = 48.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(48.dp))
-
-        Button(onClick = onNewGameClick) {
+        Button(
+            onClick = onNewGameClick, colors = ButtonColors(
+                Color(0xFF912856),
+                Color(0xFF912856),
+                Color(0xFF912856),
+                Color(0xFF912856),
+            )
+        ) {
             Text(
                 text = "NEW GAME", fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        Button(onClick = onContinueGameClick) {
+        Button(
+            onClick = onContinueGameClick, colors = ButtonColors(
+                Color(0xFF23674E),
+                Color(0xFF23674E),
+                Color(0xFF23674E),
+                Color(0xFF23674E),
+            )
+        ) {
             Text(
-                text = "continue the game", fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
+                text = "continue", fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
         }
     }
