@@ -306,7 +306,9 @@ fun Ka_kawBoard() {
                             onWin = { winner -> showWinDialog.value = winner }
                         )
                     }
-                })
+                },
+                onDismiss = { showDialog.value = false }
+            )
             if (showWinDialog.value != null) {
                 AlertDialog(
                     onDismissRequest = { showWinDialog.value = null },
@@ -335,10 +337,12 @@ fun BirdActionDialog(
     selectedPosition: Position?,
     gameState: GameState,
     onMove: () -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     if (showDialog && selectedPosition != null) {
-        AlertDialog(onDismissRequest = { /* Do nothing, as we handle the dismiss in the onMove and onRemove lambdas */ },
+        AlertDialog(
+            onDismissRequest = onDismiss,
             title = {
                 Text(
                     text = "Choose action for ${gameState.board[selectedPosition]?.type?.name ?: "Selected"} Bird"
@@ -374,7 +378,8 @@ fun BirdActionDialog(
                         }
                     }
                 }
-            })
+            }
+        )
     }
 }
 

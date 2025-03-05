@@ -7,7 +7,6 @@ import com.example.birdgame.model.GameState
 import com.example.birdgame.model.Player
 import com.example.birdgame.model.Position
 import com.example.birdgame.model.calculateBoardBounds
-import kotlin.math.abs
 
 fun handleTap(
     position: Position,
@@ -101,9 +100,33 @@ fun handleMoveSelection(
     }
 }
 
+private val allowedMovesMap = mapOf(
+    BirdType.REGULAR to listOf(
+        Position(-1, 0), Position(1, 0), Position(0, -1), Position(0, 1)
+    ),
+    BirdType.SHOOTER to listOf(
+        Position(-1, -1), Position(-1, 1), Position(1, -1), Position(1, 1)
+    ),
+    BirdType.HIT_MAN to listOf(
+        Position(-1, -1), Position(-1, 0), Position(-1, 1),
+        Position(0, -1), Position(0, 1),
+        Position(1, -1), Position(1, 0), Position(1, 1)
+    ),
+    BirdType.AGENT to listOf(
+        Position(-1, 0), Position(1, 0), Position(0, -1), Position(0, 1)
+    ),
+    BirdType.BOMBER to listOf(
+        Position(-2, -1), Position(-2, 1), Position(-1, -2), Position(-1, 2),
+        Position(1, -2), Position(1, 2), Position(2, -1), Position(2, 1)
+    ),
+    BirdType.BOSS to listOf(
+        Position(-1, -1), Position(-1, 0), Position(-1, 1),
+        Position(0, -1), Position(0, 1),
+        Position(1, -1), Position(1, 0), Position(1, 1)
+    )
+)
+
 fun isMoveValid(from: Position, to: Position, birdType: BirdType, board: Map<Position, Bird>): Boolean {
-    val rowDiff = abs(from.row - to.row)
-    val colDiff = abs(from.col - to.col)
 
     val adjacentPositions = getAdjacentPositions(to)
 
@@ -121,32 +144,12 @@ fun isMoveValid(from: Position, to: Position, birdType: BirdType, board: Map<Pos
 
     if (occupiedRows.size > 4 || occupiedCols.size > 4) return false
 
-    return when (birdType) {
-        BirdType.REGULAR -> rowDiff + colDiff == 1
-        BirdType.SHOOTER -> rowDiff == 1 && colDiff == 1
-        BirdType.HIT_MAN -> rowDiff <= 1 && colDiff <= 1 && (rowDiff != 0 || colDiff != 0)
-        BirdType.AGENT -> {
-            if ((rowDiff == 0 && colDiff != 0) || (rowDiff != 0 && colDiff == 0)) {
-                val rowDirection = if (to.row > from.row) 1 else if (to.row < from.row) -1 else 0
-                val colDirection = if (to.col > from.col) 1 else if (to.col < from.col) -1 else 0
+    val allowedMoves = allowedMovesMap[birdType] ?: return false
 
-                var currentRow = from.row + rowDirection
-                var currentCol = from.col + colDirection
-
-                while (currentRow != to.row || currentCol != to.col) {
-                    if (board.containsKey(Position(currentRow, currentCol))) {
-                        return false
-                    }
-                    currentRow += rowDirection
-                    currentCol += colDirection
-                }
-                true
-            } else {
-                false
-            }
-        }
-        BirdType.BOMBER -> (rowDiff == 2 && colDiff == 1) || (rowDiff == 1 && colDiff == 2)
-        BirdType.BOSS -> rowDiff <= 1 && colDiff <= 1 && (rowDiff != 0 || colDiff != 0)
+    return allowedMoves.any { allowedMove ->
+        val newRow = from.row + allowedMove.row
+        val newCol = from.col + allowedMove.col
+        Position(newRow, newCol) == to
     }
 }
 
