@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -182,6 +183,7 @@ fun Ka_kawBoard() {
             val boardWidthDp = boardWidth * cellSize
             val boardHeightDp = boardHeight * cellSize
             val horizontalScrollState = rememberScrollState()
+            val context = LocalContext.current
 
             Box(
                 modifier = Modifier
@@ -216,6 +218,7 @@ fun Ka_kawBoard() {
                                         selectedBird,
                                         player1Birds,
                                         player2Birds,
+                                        context,
                                         onWin = { winner -> showWinDialog.value = winner }
                                     )
                                 }

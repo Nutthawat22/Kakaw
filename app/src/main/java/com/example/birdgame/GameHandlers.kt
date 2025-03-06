@@ -1,5 +1,7 @@
 package com.example.birdgame
 
+import android.content.Context
+import android.media.MediaPlayer
 import androidx.compose.runtime.MutableState
 import com.example.birdgame.model.Bird
 import com.example.birdgame.model.BirdType
@@ -15,6 +17,7 @@ fun handleTap(
     selectedBird: MutableState<Bird?>,
     player1Birds: MutableList<Bird>,
     player2Birds: MutableList<Bird>,
+    context: Context,
     onWin: (Player) -> Unit
 ) {
     val bird = gameState.value.board[position]
@@ -32,6 +35,8 @@ fun handleTap(
                 updatePlayerBirds(player, selectedBird.value!!, player1Birds, player2Birds, false)
                 selectedBird.value = null
                 selectedPosition.value = null
+                val mediaPlayer = MediaPlayer.create(context, R.raw.kakaw)
+                mediaPlayer.start()
             } else {
                 selectedPosition.value = null
             }
